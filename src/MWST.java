@@ -41,8 +41,26 @@
 
 import java.util.Scanner;
 import java.io.File;
+import java.util.PriorityQueue;
+import java.util.ArrayList;
+
 
 public class MWST{
+	
+	private static final boolean DEBUG = true;
+	
+	/**
+	 * Initializes all entries in the adjacency matrix to the maximum integer value (infinity)
+	 * @param adjacency - the adjacency matrix to be initialized
+	 */
+	static void initializeMatrix(int[][] adjacency){
+		int numVerts = adjacency.length;
+		for (int i=0; i<numVerts; i++){
+			for (int j=0; j<numVerts; j++){
+				adjacency[i][j] = Integer.MAX_VALUE; //set each index
+			}
+		}
+	}
 
 
 	/* mwst(G)
@@ -56,11 +74,42 @@ public class MWST{
 	*/
 	static int mwst(int[][] G){
 		int numVerts = G.length;
-
-		/* Find a minimum weight spanning tree by any method */
-		/* (You may add extra functions if necessary) */
 		
-		/* ... Your code here ... */
+		//use prim's algorithm
+		boolean[] inTree = new boolean[numVerts]; // set when removing from queue
+		ArrayList<HeapEntry> MST = new ArrayList<HeapEntry>();
+		int vertsInTree = 0; //when we have n vertices in the MST we know we're done
+		int newestVertex;
+		PriorityQueue<HeapEntry> queue = new PriorityQueue<HeapEntry>(); //tracks all edges going out of cloud
+
+		
+		newestVertex = 0; //start from vertex 0
+		inTree[0] = true;
+		vertsInTree++;
+		
+		while (vertsInTree < numVerts){
+			// add all edges leaving newest vertex to heap
+			// don't add the edge going back to where we came from
+			for (int i=0; i<numVerts; i++){
+				if (G[newestVertex][i] != 0 && !inTree[i]){
+					HeapEntry entry = new HeapEntry(G[newestVertex][i], newestVertex, i);
+					queue.add(entry);
+				}
+			}
+			
+			//Get the smallest outgoing edge and add it to the MST
+			//Update all corresponding fields
+			boolean alreadyInTree = true;
+			HeapEntry min = queue.remove();
+			while (alreadyInTree){
+				if (!inTree[min.endVertex]) alreadyInTree = false; //get the next smallest if end vertex is already in the cloud
+				else min = queue.remove();
+			}
+			MST.add(min); //add the minimum weighted edge into the cloud
+			vertsInTree++;
+			newestVertex = min.endVertex; //set newly added vertex so as to add its outgoing edges to the priority queue
+			inTree[min.endVertex] = true; //
+		}
 		
 		
 		
@@ -69,6 +118,13 @@ public class MWST{
 		*/
 		int totalWeight = 0;
 		/* ... Your code here ... */
+		for (HeapEntry entry:MST){
+			totalWeight += entry.edgeWeight;
+			if(DEBUG){
+				System.out.println("(" + entry.startVertex + "," + entry.endVertex + ")");
+			}
+		}
+		
 		
 		return totalWeight;
 		
